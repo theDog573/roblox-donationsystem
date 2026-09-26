@@ -22,7 +22,7 @@ app.post('/create-donation', async (req, res) => {
 
     try {
         // hardcoded ID directly in the string so it literally cannot be undefined 
-        const response = await fetch(`https://apis.roblox.com/developer-products/v1/universes/10468245026/developer-products`, {
+        const response = await fetch(`https://create.roblox.com/dashboard/creations/experiences/10468245026/monetization/developer-products`, {
             method: 'POST',
             headers: {
                 'x-api-key': ROBLOX_API_KEY,

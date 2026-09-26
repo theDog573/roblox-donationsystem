@@ -14,14 +14,14 @@ app.post('/create-donation', async (req, res) => {
 
     let finalPriceInRobux = parseInt(baseRobuxAmount);
 
-    // Wenn der Steuer-Button im UI aktiv ist (+30%)
+    // tax calculation (+30%)
     if (coverTax === true) {
         finalPriceInRobux = Math.ceil(finalPriceInRobux / 0.7); 
     }
 
     try {
-        // KORREKTE ROBLOX OPEN CLOUD API URL
-        const response = await fetch(`https://roblox.com{UNIVERSE_ID}/developer-products`, {
+        // 2026 UPDATE: using v2 endpoint with proper fetch syntax
+        const response = await fetch(`https://apis.roblox.com/developer-products/v2/universes/${UNIVERSE_ID}/developer-products`, {
             method: 'POST',
             headers: {
                 'x-api-key': ROBLOX_API_KEY,
@@ -35,7 +35,8 @@ app.post('/create-donation', async (req, res) => {
         });
 
         const data = await response.json();
-        if (data.id) {
+
+        if (response.ok && data.id) {
             res.json({ productId: data.id });
         } else {
             res.status(400).json({ error: "Roblox API Fehler", details: data });

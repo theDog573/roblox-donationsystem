@@ -20,8 +20,8 @@ app.post('/create-donation', async (req, res) => {
     }
 
     try {
-        // 2026 UPDATE: using v2 endpoint with proper fetch syntax
-        const response = await fetch(`https://apis.roblox.com/developer-products/v2/universes/${UNIVERSE_ID}/developer-products`, {
+        // Back to v1 because v2 probably 404'd us 💀
+        const response = await fetch(`https://apis.roblox.com/developer-products/v1/universes/${UNIVERSE_ID}/developer-products`, {
             method: 'POST',
             headers: {
                 'x-api-key': ROBLOX_API_KEY,
@@ -34,14 +34,27 @@ app.post('/create-donation', async (req, res) => {
             })
         });
 
-        const data = await response.json();
+        // 🛑 SAFE PARSE: get raw text first so we don't crash on empty responses
+        const text = await response.text();
+        
+        if (!response.ok) {
+            console.error("Open Cloud error:", response.status, text);
+            return res.status(response.status).json({ 
+                error: `OpenCloud ${response.status}`, 
+                detail: text || "Empty response from Roblox" 
+            });
+        }
 
-        if (response.ok && data.id) {
+        // If we get here, response.ok is true, so it's safe to parse
+        const data = JSON.parse(text);
+
+        if (data.id) {
             res.json({ productId: data.id });
         } else {
             res.status(400).json({ error: "Roblox API Fehler", details: data });
         }
     } catch (err) {
+        console.error("Server crashed:", err.message);
         res.status(500).json({ error: err.message });
     }
 });

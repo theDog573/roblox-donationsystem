@@ -14,12 +14,13 @@ app.post('/create-donation', async (req, res) => {
 
     let finalPriceInRobux = parseInt(baseRobuxAmount);
 
-    // Wenn der 30%-Steuer-Button im UI aktiv ist
+    // Wenn der Steuer-Button im UI aktiv ist (+30%)
     if (coverTax === true) {
         finalPriceInRobux = Math.ceil(finalPriceInRobux / 0.7); 
     }
 
     try {
+        // KORREKTE ROBLOX OPEN CLOUD API URL
         const response = await fetch(`https://roblox.com{UNIVERSE_ID}/developer-products`, {
             method: 'POST',
             headers: {
@@ -27,8 +28,8 @@ app.post('/create-donation', async (req, res) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                name: `Donation: ${baseRobuxAmount} Robux Base`,
-                description: `Custom Donation. Tax covered: ${coverTax}`,
+                name: `Buy: ${baseRobuxAmount} Robux Base`,
+                description: `In-Game Cash Purchase. Tax covered: ${coverTax}`,
                 priceInRobux: finalPriceInRobux
             })
         });

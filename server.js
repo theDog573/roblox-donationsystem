@@ -20,8 +20,8 @@ app.post('/create-donation', async (req, res) => {
     }
 
     try {
-        // Back to v1 because v2 probably 404'd us 💀
-        const response = await fetch(`https://apis.roblox.com/developer-products/v1/universes/${UNIVERSE_ID}/developer-products`, {
+        // ✅ FIXED URL: Removed the hyphen from the very end ('developerproducts')
+        const response = await fetch(`https://apis.roblox.com/developer-products/v1/universes/${UNIVERSE_ID}/developerproducts`, {
             method: 'POST',
             headers: {
                 'x-api-key': ROBLOX_API_KEY,

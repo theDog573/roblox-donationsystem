@@ -4,8 +4,10 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 80;
 const ROBLOX_API_KEY = process.env.ROBLOX_API_KEY;
-const UNIVERSE_ID = process.env.UNIVERSE_ID;
 const SECRET_TOKEN = process.env.SECRET_TOKEN;
+
+// we don't even need the env var anymore, just hardcoding it
+const UNIVERSE_ID = "10468245026";
 
 app.post('/create-donation', async (req, res) => {
     const { baseRobuxAmount, coverTax, token } = req.body;
@@ -14,14 +16,13 @@ app.post('/create-donation', async (req, res) => {
 
     let finalPriceInRobux = parseInt(baseRobuxAmount);
 
-    // tax calculation (+30%)
     if (coverTax === true) {
         finalPriceInRobux = Math.ceil(finalPriceInRobux / 0.7); 
     }
 
     try {
-        // ✅ FIXED URL: Removed the hyphen from the very end ('developerproducts')
-        const response = await fetch(`https://apis.roblox.com/developer-products/v2/universes/${UNIVERSE_ID}/developerproducts`, {
+        // hardcoded ID directly in the string so it literally cannot be undefined 
+        const response = await fetch(`https://apis.roblox.com/developer-products/v1/universes/10468245026/developer-products`, {
             method: 'POST',
             headers: {
                 'x-api-key': ROBLOX_API_KEY,
@@ -34,7 +35,6 @@ app.post('/create-donation', async (req, res) => {
             })
         });
 
-        // 🛑 SAFE PARSE: get raw text first so we don't crash on empty responses
         const text = await response.text();
         
         if (!response.ok) {
@@ -45,7 +45,6 @@ app.post('/create-donation', async (req, res) => {
             });
         }
 
-        // If we get here, response.ok is true, so it's safe to parse
         const data = JSON.parse(text);
 
         if (data.id) {

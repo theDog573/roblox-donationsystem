@@ -23,34 +23,24 @@ app.post('/create-donation', async (req, res) => {
     }
 
     try {
-        // FIX: the old URL (create.roblox.com/dashboard/...) is the browser
-        // page for the Creator Dashboard, not an API route — it will always
-        // 404 no matter what ID is in the path.
-        //
-        // TODO — VERIFY BEFORE DEPLOYING:
-        // As far as I'm aware, Developer Product *creation* is not exposed
-        // through the public Open Cloud API (apis.roblox.com, x-api-key auth).
-        // It has historically only been reachable through the internal API
-        // the dashboard itself calls (develop.roblox.com), which authenticates
-        // with a .ROBLOSECURITY session cookie, not an API key.
-        //
-        // This may have changed — please check Roblox's current Open Cloud
-        // docs (https://create.roblox.com/docs/cloud) for a supported
-        // developer-products endpoint before relying on this. If one exists,
-        // swap the URL below for it. If not, you'll need a cookie-based auth
-        // flow instead of ROBLOX_API_KEY for this specific call.
-        const response = await fetch(`https://apis.roblox.com/cloud/v2/universes/${UNIVERSE_ID}/developer-products`, {
-            method: 'POST',
-            headers: {
-                'x-api-key': ROBLOX_API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: `Buy: ${parsedAmount} Robux Base`,
-                description: `In-Game Cash Purchase. Tax covered: ${coverTax}`,
-                priceInRobux: finalPriceInRobux
-            })
-        });
+        // CORRECT ENDPOINT: /developer-products/v2/universes/{id}/developer-products
+        // (NOT /cloud/v2/... — that path returns 404 with an empty body.)
+        const response = await fetch(
+            `https://apis.roblox.com/developer-products/v2/universes/${UNIVERSE_ID}/developer-products`,
+            {
+                method: 'POST',
+                headers: {
+                    'x-api-key': ROBLOX_API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: `Buy: ${parsedAmount} Robux Base`,
+                    description: `In-Game Cash Purchase. Tax covered: ${coverTax}`,
+                    priceInRobux: finalPriceInRobux,
+                    isForSale: true
+                })
+            }
+        );
 
         const text = await response.text();
 
@@ -64,8 +54,10 @@ app.post('/create-donation', async (req, res) => {
 
         const data = JSON.parse(text);
 
-        if (data.id) {
-            res.json({ productId: data.id });
+        // The v2 create endpoint returns the new product's id in `path` or `id`.
+        const productId = data.id || (data.path && data.path.match(/(\d+)$/)?.[1]);
+        if (productId) {
+            res.json({ productId: Number(productId) });
         } else {
             res.status(400).json({ error: "Roblox API error", details: data });
         }
